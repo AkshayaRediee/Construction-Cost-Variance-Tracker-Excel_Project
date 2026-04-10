@@ -258,7 +258,7 @@ Skills: Excel financial modelling · Construction cost management · Dynamic rep
 
 ---
 
-*Built from scratch — raw data, formula logic, report design, and documentation — as a demonstration of end-to-end analytical thinking in a construction finance context.* 
+*Built from scratch, raw data, formula logic, report design, and documentation as a demonstration of end-to-end analytical thinking in a construction finance context.* 
 
 
 
