@@ -84,107 +84,157 @@ The synthetic dataset replicates a real NYC capital infrastructure project. It c
 | **TOTAL** | **$159,645,000** |
 
 ---
-
 ## 🔧 Formulas Explained
 
-### The Month Dropdown — Cell B4
+### The Month Dropdown
 
-   Data Validation → List → Jan-24, Feb-24 ... Dec-24
+A Data Validation dropdown is placed in the Reporting Month cell. 
+It contains the 12 months of the project (Jan-24 through Dec-24).
 
-  This single cell controls the entire model. Every formula references $B$4. Change this one cell and all 54 formula cells recalculate simultaneously.
+This single cell controls the entire model. Every formula references 
+this one cell. Change the month — the whole report updates.
 
-Helper cell:
+A helper cell converts the selected month into a number:
 ```excel
-=MONTH(B4)
+=MONTH(reporting_month_cell)
 ```
-Converts the selected month into a number. January = 1, September = 9. Used in SUMPRODUCT to filter invoices up to the selected month.
+January = 1, February = 2, September = 9 and so on.
+This number is used in formulas to filter invoices up to
+and including the selected month.
 
 ---
 
-### Approved Budget — Column B
+### Approved Budget
 
 ```excel
-=SUMIFS(table_budget[Current_Budget], table_budget[Trade], TRIM(A10))
-```
-
-Goes to the budget table, finds all rows matching the trade name, and adds up the Current Budget. TRIM removes invisible spaces that would cause a mismatch error.
-
----
-
-### Actual to Date — Column C
-
-```excel
-=SUMPRODUCT(
-  (TRIM(table_ledger[Trade]) = TRIM(A10)) *
-  (table_ledger[Status] = "Posted") *
-  (MONTH(table_ledger[Month]) <= $L$4) *
-  (table_ledger[Actual_Cost])
+=SUMIFS(
+  Budget_Table[Current_Budget],
+  Budget_Table[Trade],
+  TRIM(trade_name_cell)
 )
 ```
 
-This is the most important formula in the model. It filters every invoice by three conditions correct trade, posted status, and month up to the selected month and sums only the invoices that pass all three. The asterisks work like AND logic. This is why the dropdown updates the actuals dynamically.
+Goes into the budget table and adds up every budget line 
+that belongs to the matching trade package.
 
-SUMPRODUCT is used instead of SUMIFS because SUMIFS cannot handle less-than-or-equal comparisons for cumulative filtering.
-
----
-
-### Variance in Dollars — Column D
-
-```excel
-=C10 - B10
-```
-
-Actual minus budget. Negative = under budget. Positive = over budget.
+TRIM is wrapped around the trade name to remove any invisible 
+spaces that would cause the lookup to fail silently.
 
 ---
 
-### Variance Percentage — Column E
+### Actual to Date
 
 ```excel
-=IFERROR(D10 / B10, 0)
+=SUMPRODUCT(
+  (TRIM(Ledger_Table[Trade]) = TRIM(trade_name_cell)) *
+  (Ledger_Table[Status] = "Posted") *
+  (MONTH(Ledger_Table[Month]) <= month_number_helper_cell) *
+  (Ledger_Table[Actual_Cost])
+)
 ```
 
-Variance as a percentage of approved budget. IFERROR prevents a divide-by-zero error if budget is blank.
+This is the most important formula in the model. It scans every 
+invoice in the ledger and only includes it if three conditions 
+are ALL true:
+
+1. The invoice belongs to the correct trade
+2. The invoice has been posted (it is a real invoice, not a forecast)
+3. The invoice month is on or before the selected reporting month
+
+The asterisks between conditions work like AND logic — all three 
+must be TRUE for that invoice to be included in the total.
+
+Why SUMPRODUCT instead of SUMIFS?
+SUMIFS can only match exact values. SUMPRODUCT can handle 
+comparisons like "less than or equal to" which is what we need 
+to accumulate spend up to a selected month dynamically.
 
 ---
 
-### % Complete — Column H
+### Variance in Dollars
 
 ```excel
-=IFERROR(C10 / B10, 0)
+= Actual_to_Date - Approved_Budget
 ```
 
-How much of the approved budget has been spent. In construction, spend percentage is a reliable proxy for physical progress.
+Simple subtraction. 
+Negative number = under budget (money still available).
+Positive number = over budget (overspending).
 
 ---
 
-### Forecast Final Cost — Column F
+### Variance Percentage
 
 ```excel
-=IFERROR(B10 + (C10 - B10) * (1 - H10), B10)
+= IFERROR(Variance_Dollar / Approved_Budget, 0)
 ```
 
-Based on current spend rate, what will this trade cost at 100% completion? Takes the current variance and projects it forward across the remaining work. This is earned value logic the same methodology used by professional cost consultancies worldwide.
+Expresses the variance as a percentage of the approved budget.
+IFERROR handles the case where budget is zero, preventing 
+a divide-by-zero error from breaking the report.
 
 ---
 
-### Contingency Used — Column G
+### Percentage Complete
 
 ```excel
-=SUMIFS(table_budget[Contingency], table_budget[Trade], TRIM(A10))
+= IFERROR(Actual_to_Date / Approved_Budget, 0)
 ```
 
-How much contingency reserve was allocated to this trade. Shows whether an overrun is within the contingency envelope or exceeding it.
+How much of the budget has been spent so far.
+In construction, spend percentage is a reliable proxy 
+for physical progress on site.
 
 ---
 
-### RAG Status — Column I
+### Forecast Final Cost
 
 ```excel
-=IF(H10 < 0.5, "RED", IF(H10 < 0.7, "AMBER", "GREEN"))
+= IFERROR(
+    Approved_Budget + (Actual_to_Date - Approved_Budget) * (1 - Pct_Complete),
+    Approved_Budget
+  )
 ```
 
-Automatic traffic light status based on percentage complete.
+Answers the question: if we keep spending at this rate, 
+what will this trade cost when it is 100% complete?
+
+It takes the current variance and projects it forward 
+across the remaining work still to be done.
+This is earned value logic — the same methodology used 
+by professional cost consultancies worldwide.
+
+---
+
+### Contingency Used
+
+```excel
+=SUMIFS(
+  Budget_Table[Contingency],
+  Budget_Table[Trade],
+  TRIM(trade_name_cell)
+)
+```
+
+Pulls the contingency reserve allocated to each trade 
+from the budget register.
+
+Comparing contingency against the variance tells the cost 
+manager whether an overrun is within the safety envelope 
+or has exceeded it and needs escalating.
+
+---
+
+### RAG Status
+
+```excel
+=IF(Pct_Complete < 0.5, "RED",
+   IF(Pct_Complete < 0.7, "AMBER",
+   "GREEN"))
+```
+
+Automatic traffic light based on how far through 
+each trade is by the reporting month.
 
 | Status | Condition | Meaning |
 |---|---|---|
@@ -192,37 +242,44 @@ Automatic traffic light status based on percentage complete.
 | 🟡 AMBER | 50–70% complete | Slightly behind — monitor closely |
 | 🟢 GREEN | Over 70% complete | On track |
 
-Conditional formatting automatically colours the cells based on the text value no manual formatting needed.
+Conditional formatting automatically colours the cell 
+red, amber, or green based on the text value — 
+no manual formatting needed ever again.
 
 ---
 
-### S-Curve Chart Formulas
+### S-Curve Chart — Planned Cumulative
 
-Total Planned Cumulative:
 ```excel
-=SUMPRODUCT((MONTH(table_ledger[Month]) <= A2) * (table_ledger[Planned_Cost]))
+=SUMPRODUCT(
+  (MONTH(Ledger_Table[Month]) <= current_row_month_number) *
+  (Ledger_Table[Planned_Cost])
+)
 ```
 
-Total Actual Cumulative:
+Adds up all planned costs across all trades up to 
+and including each month, building the planned S-Curve line.
+
+### S-Curve Chart — Actual Cumulative
+
 ```excel
-=SUMPRODUCT((table_ledger[Status]="Posted") * (MONTH(table_ledger[Month]) <= A2) * (table_ledger[Actual_Cost]))
+=SUMPRODUCT(
+  (Ledger_Table[Status] = "Posted") *
+  (MONTH(Ledger_Table[Month]) <= current_row_month_number) *
+  (Ledger_Table[Actual_Cost])
+)
 ```
-
-These formulas build the S-Curve data table row by row across all 12 months, giving the full curve shape regardless of the dropdown selection.
-
----
-
-## 📈 The S-Curve Chart
-
-The S-Curve is the signature visualisation of construction project management. It plots cumulative planned spend vs cumulative actual spend over the life of the project.
-
 How to read it:
 - Actual line below planned line = work is behind schedule
 - Actual line above planned line = ahead of schedule or costs are higher than planned
 - The gap between the two lines at the reporting date = current cumulative variance
 - Actual line going flat after September = no more posted invoices, project is mid-construction
 
----
+Same logic but only includes posted invoices.
+This is why the actual line goes flat after September 
+there are no posted invoices for future months yet.
+That flat line represents the work still to be completed.
+
 
 ## 🛠️ Skills Demonstrated
 
