@@ -10,17 +10,17 @@
 
 ## 📌 What Is This Project?
 
-This is a dynamic financial reporting model built entirely in Microsoft Excel. It takes a raw construction cost ledger — hundreds of messy invoice line items — and turns it into a clean, professional one-page executive summary that automatically updates every time you change a single dropdown.
+This is a dynamic financial reporting model built entirely in Microsoft Excel. It takes a raw construction cost ledger hundreds of messy invoice line items and turns it into a clean, professional one-page executive summary that automatically updates every time you change a single dropdown.
 
 Think of it like a live dashboard for a construction project. The project director walks into a client meeting, picks the reporting month from a dropdown, and instantly sees exactly where every dollar has gone, which trade packages are over budget, and what the project is forecast to cost at completion.
 
-No manual copy-pasting. No rebuilding charts. No formula errors. Change one cell — the whole report updates.
+No manual copy-pasting. No rebuilding charts. No formula errors. Change one cell the whole report updates.
 
 ---
 
 ## 🎯 The Business Problem This Solves
 
-Every junior analyst at firms like Turner & Townsend, AECOM, or Cumming Group does this manually every single month-end:
+Every junior analyst at firms in Cost&Construction Management does this manually every single month-end:
 
 1. Export raw data from the project accounting system
 2. Copy numbers into a template
