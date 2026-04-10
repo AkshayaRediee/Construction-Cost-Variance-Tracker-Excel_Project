@@ -28,7 +28,7 @@ Every junior analyst at firms in Cost&Construction Management does this manually
 4. Reformat the table
 5. Rebuild the chart
 
-That process takes 3–4 hours every month. One mislinked cell or a formula error means the project director walks into a client meeting with wrong numbers in front of a client spending $200 million on a build.
+That process takes 3 – 4 hours every month. One mislinked cell or a formula error means the project director walks into a client meeting with wrong numbers in front of a client spending $200 million on a build.
 
 This model eliminates that entirely. Paste new data, refresh, done in 10 minutes.
 
@@ -45,9 +45,7 @@ This model eliminates that entirely. Paste new data, refresh, done in 10 minutes
 ---
 
 ## 📁 Project Structure
-Construction_Cost_Tracker/
-
-│
+Construction_Cost_Tracker
 
 ├── Construction_Cost_Tracker_Datasets.xlsx   ← Raw synthetic datasets (input)
 
@@ -61,10 +59,10 @@ Construction_Cost_Tracker/
 
 | Sheet | Colour | Purpose |
 |---|---|---|
-| RAW_DATA | Grey | Raw invoice ledger — 686 line items, every invoice for every trade |
+| RAW_DATA | Grey | Raw invoice ledger 686 line items, every invoice for every trade |
 | BUDGET_REGISTER | Blue | Approved budgets per trade and cost code, including change orders |
 | MONTHLY_SUMMARY | Orange | Month-by-month planned vs actual spend per trade |
-| EXECUTIVE_SUMMARY | Green | The one-page report — this is what clients see |
+| EXECUTIVE_SUMMARY | Green | The one-page report this is what clients see |
 | SCURVE_CHART | Purple | S-Curve chart data and visualisation |
 
 ---
@@ -124,7 +122,7 @@ Goes to the budget table, finds all rows matching the trade name, and adds up th
 )
 ```
 
-This is the most important formula in the model. It filters every invoice by three conditions — correct trade, posted status, and month up to the selected month — and sums only the invoices that pass all three. The asterisks work like AND logic. This is why the dropdown updates the actuals dynamically.
+This is the most important formula in the model. It filters every invoice by three conditions correct trade, posted status, and month up to the selected month and sums only the invoices that pass all three. The asterisks work like AND logic. This is why the dropdown updates the actuals dynamically.
 
 SUMPRODUCT is used instead of SUMIFS because SUMIFS cannot handle less-than-or-equal comparisons for cumulative filtering.
 
@@ -166,7 +164,7 @@ How much of the approved budget has been spent. In construction, spend percentag
 =IFERROR(B10 + (C10 - B10) * (1 - H10), B10)
 ```
 
-Based on current spend rate, what will this trade cost at 100% completion? Takes the current variance and projects it forward across the remaining work. This is earned value logic — the same methodology used by professional cost consultancies worldwide.
+Based on current spend rate, what will this trade cost at 100% completion? Takes the current variance and projects it forward across the remaining work. This is earned value logic the same methodology used by professional cost consultancies worldwide.
 
 ---
 
@@ -194,7 +192,7 @@ Automatic traffic light status based on percentage complete.
 | 🟡 AMBER | 50–70% complete | Slightly behind — monitor closely |
 | 🟢 GREEN | Over 70% complete | On track |
 
-Conditional formatting automatically colours the cells based on the text value — no manual formatting needed.
+Conditional formatting automatically colours the cells based on the text value no manual formatting needed.
 
 ---
 
